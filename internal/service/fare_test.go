@@ -1,15 +1,18 @@
 package service
 
 import (
+	"bufio"
 	"bytes"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
-	"github.com/unklejo/xyz.taxi-fares/internal/repository"
 	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
 
-// Helper function to parse meter records from string input
+const timeLayout = "15:04:05.000"
+
 func parseRecords(t *testing.T, input string) []meter.Record {
 	records := make([]meter.Record, 0) // Initialize empty slice
 	scanner := bufio.NewScanner(strings.NewReader(input))
@@ -106,21 +109,22 @@ func TestFareService_CalculateAndOutputFare(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out := &bytes.Buffer{} // Capture standard output
+			out := &bytes.Buffer{}
 
-			// Create a mock MeterRepository that returns records from tt.input
 			mockRepo := &mockMeterRepository{
 				records: parseRecords(t, tt.input),
 			}
 			service := NewFareService(mockRepo)
 
-			err := service.CalculateAndOutputFare(meter.NewReader(strings.NewReader(tt.input)))
+			err := service.CalculateAndOutputFare(*meter.NewReader(strings.NewReader(tt.input))) // Pass reader (not pointer)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CalculateAndOutputFare() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got := out.String(); got != tt.want {
-				t.Errorf("CalculateAndOutputFare() = %v, want %v", got, tt.want)
+
+			expectedOutput := strings.ReplaceAll(tt.want, " ", "\n")
+			if got := out.String(); got != expectedOutput {
+				t.Errorf("CalculateAndOutputFare() = %v, want %v", got, expectedOutput)
 			}
 		})
 	}

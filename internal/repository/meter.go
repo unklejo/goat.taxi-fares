@@ -1,6 +1,8 @@
 package repository
 
-import "github.com/unklejo/xyz.taxi-fares/pkg/meter"
+import (
+	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
+)
 
 type MeterRepository interface {
 	ReadRecords(reader meter.Reader) ([]meter.Record, error)
