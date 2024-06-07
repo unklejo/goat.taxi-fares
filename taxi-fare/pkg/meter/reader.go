@@ -26,6 +26,7 @@ func NewReader(r io.Reader) *Reader {
 func (r *Reader) ReadRecords() ([]Record, error) {
 	var records []Record
 	var lastTime *time.Time
+	const timeLayout = "15:04:05.000"
 
 	recordRegex := regexp.MustCompile(`^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+\.?\d*)$`)
 	for r.scanner.Scan() {
@@ -35,7 +36,7 @@ func (r *Reader) ReadRecords() ([]Record, error) {
 			return nil, fmt.Errorf("invalid input format: %s", line)
 		}
 
-		currentTime, err := time.Parse("15:04:05.000", matches[1])
+		currentTime, err := time.Parse(timeLayout, matches[1])
 		if err != nil {
 			return nil, fmt.Errorf("invalid time format: %s", matches[1])
 		}
