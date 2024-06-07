@@ -1,39 +1,89 @@
 package meter
 
 import (
-    "bufio"
-    "fmt"
-    "io"
-    "regexp"
-    "strings"
-    "time"
+	"bufio"
+	"fmt"
+	"io"
+	"regexp"
+	"strings"
+	"time"
 )
 
 type Record struct {
-    Time          string
-    Distance      float64
-    DistanceDiff  float64
+	Time         string
+	Distance     float64
+	DistanceDiff float64
 }
 
 type Reader struct {
-    scanner *bufio.Scanner
+	scanner *bufio.Scanner
 }
 
 func NewReader(r io.Reader) *Reader {
-    return &Reader{scanner: bufio.NewScanner(r)}
+	return &Reader{scanner: bufio.NewScanner(r)}
 }
 
 func (r *Reader) ReadRecords() ([]Record, error) {
-    var records []Record
-    var lastTime *time.Time
+	var records []Record
+	var lastTime *time.Time
 
-    recordRegex := regexp.MustCompile(`^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+\.?\d*)$`)
-    for r.scanner.Scan() {
-        line := r.scanner.Text()
-        matches := recordRegex.FindStringSubmatch(line)
-        if len(matches) != 3 { // 0: full match, 1: time, 2: distance
-            return nil, fmt.Errorf("invalid input format: %s", line)
-        }
-        
-        // ... (rest of the logic for parsing time, distance, and error handling)
+	recordRegex := regexp.MustCompile(`^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+\.?\d*)$`)
+	for r.scanner.Scan() {
+		line := r.scanner.Text()
+		matches := recordRegex.FindStringSubmatch(line)
+		if len(matches) != 3 { // 0: full match, 1: time, 2: distance
+			return nil, fmt.Errorf("invalid input format: %s", line)
+		}
+
+		currentTime, err := time.Parse("15:04:05.000", matches[1])
+		if err != nil {
+			return nil, fmt.Errorf("invalid time format: %s", matches[1])
+		}
+
+		if lastTime != nil && currentTime.Before(*lastTime) {
+			return nil, fmt.Errorf("invalid time order: %s", line)
+		}
+
+		if lastTime != nil && currentTime.Sub(*lastTime) > 5*time.Minute {
+			return nil, fmt.Errorf("time gap too large: %s", line)
+		}
+
+		distance, err := parseFloat64(matches[2])
+		if err != nil {
+			return nil, fmt.Errorf("invalid distance format: %s", matches[2])
+		}
+
+		records = append(records, Record{Time: matches[1], Distance: distance})
+		lastTime = &currentTime
+	}
+
+	if err := r.scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return records, nil
+}
+
+// parseFloat64 converts a string to a float64, ensuring it has at most one decimal point.
+func parseFloat64(s string) (float64, error) {
+	parts := strings.Split(s, ".")
+	if len(parts) > 2 {
+		return 0, fmt.Errorf("invalid floating-point format: %s", s)
+	}
+	whole, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return 0, err
+	}
+	if len(parts) == 1 {
+		return float64(whole), nil
+	}
+	fracStr := parts[1]
+	if len(fracStr) > 1 {
+		return 0, fmt.Errorf("too many digits after decimal point: %s", s)
+	}
+	frac, err := strconv.Atoi(fracStr)
+	if err != nil {
+		return 0, err
+	}
+	return float64(whole) + float64(frac)/10, nil
 }
