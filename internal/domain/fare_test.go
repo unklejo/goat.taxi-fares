@@ -1,6 +1,9 @@
 package domain
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestCalculateFare(t *testing.T) {
 	tests := []struct {

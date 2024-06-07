@@ -4,15 +4,20 @@ import (
 	"fmt"
 	"os"
 
-	"internal/usecase"
-	"pkg/meter"
+	"github.com/unklejo/xyz.taxi-fares/internal/repository"
+	"github.com/unklejo/xyz.taxi-fares/internal/service"
+	"github.com/unklejo/xyz.taxi-fares/internal/usecase"
+	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
 
 func main() {
 	reader := meter.NewReader(os.Stdin)
-	fareUseCase := usecase.NewFareUseCase()
 
-	if err := fareUseCase.CalculateAndOutputFare(reader); err != nil {
+	repo := repository.NewMeterRepository()
+	service := service.NewFareService(repo)
+	fareUseCase := usecase.NewCalculateAndOutputFareUseCase(*service)
+
+	if err := fareUseCase.Execute(*reader); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

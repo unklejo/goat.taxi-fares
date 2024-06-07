@@ -2,11 +2,11 @@ package service
 
 import (
 	"fmt"
-	"os"
 	"sort"
-	"xyz.taxi-fares/internal/domain"
-	"xyz.taxi-fares/internal/repository"
-	"xyz.taxi-fares/pkg/meter"
+
+	"github.com/unklejo/xyz.taxi-fares/internal/domain"
+	"github.com/unklejo/xyz.taxi-fares/internal/repository"
+	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
 
 type FareService struct {

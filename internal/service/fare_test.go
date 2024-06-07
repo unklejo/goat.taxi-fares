@@ -3,9 +3,10 @@ package service
 import (
 	"bytes"
 	"strings"
-	"xyz.taxi-fares/internal/repository"
-	"xyz.taxi-fares/pkg/meter"
 	"testing"
+
+	"github.com/unklejo/xyz.taxi-fares/internal/repository"
+	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
 
 // Helper function to parse meter records from string input
@@ -60,47 +61,47 @@ func TestFareService_CalculateAndOutputFare(t *testing.T) {
 		},
 		// Error scenarios (invalid format, time order, gaps, etc.)
 		{
-            name:  "Invalid Input Format",
-            input: "00:00:00 0.0\n00:01:00.123 480.9",
-            want:    "", // No output for invalid format
-            wantErr: true,
-        },
-        {
-            name:  "Blank Line",
-            input: "00:00:00.000 0.0\n\n00:01:00.123 480.9",
-            want:    "",
-            wantErr: true,
-        },
-        {
-            name:  "Invalid Time Order",
-            input: "00:01:00.123 480.9\n00:00:00.000 0.0",
-            want:    "",
-            wantErr: true,
-        },
-        {
-            name:  "Time Gap Too Large",
-            input: "00:00:00.000 0.0\n00:06:00.123 480.9", 
-            want:    "",
-            wantErr: true,
-        },
-        {
-            name:  "Insufficient Data",
-            input: "00:00:00.000 0.0", 
-            want:    "",
-            wantErr: true,
-        },
-        {
-            name:  "Zero Total Distance",
-            input: "00:00:00.000 0.0\n00:01:00.123 0.0",
-            want:    "",
-            wantErr: true,
-        },
-        {
-            name:  "Invalid Distance Format",
-            input: "00:00:00.000 0.0\n00:01:00.123 480.9a",
-            want:    "",
-            wantErr: true,
-        }
+			name:    "Invalid Input Format",
+			input:   "00:00:00 0.0\n00:01:00.123 480.9",
+			want:    "", // No output for invalid format
+			wantErr: true,
+		},
+		{
+			name:    "Blank Line",
+			input:   "00:00:00.000 0.0\n\n00:01:00.123 480.9",
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name:    "Invalid Time Order",
+			input:   "00:01:00.123 480.9\n00:00:00.000 0.0",
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name:    "Time Gap Too Large",
+			input:   "00:00:00.000 0.0\n00:06:00.123 480.9",
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name:    "Insufficient Data",
+			input:   "00:00:00.000 0.0",
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name:    "Zero Total Distance",
+			input:   "00:00:00.000 0.0\n00:01:00.123 0.0",
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name:    "Invalid Distance Format",
+			input:   "00:00:00.000 0.0\n00:01:00.123 480.9a",
+			want:    "",
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {

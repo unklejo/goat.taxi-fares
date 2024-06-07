@@ -1,7 +1,20 @@
 package usecase
 
-import "xyz.taxi-fares/pkg/meter"
+import (
+	"github.com/unklejo/xyz.taxi-fares/internal/service"
+	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
+)
 
-type FareUseCase interface {
-	CalculateAndOutputFare(reader meter.Reader) error
+type CalculateAndOutputFareUseCase struct {
+	fareService service.FareService
+}
+
+func NewCalculateAndOutputFareUseCase(fareService service.FareService) *CalculateAndOutputFareUseCase {
+	return &CalculateAndOutputFareUseCase{
+		fareService: fareService,
+	}
+}
+
+func (uc *CalculateAndOutputFareUseCase) Execute(reader meter.Reader) error {
+	return uc.fareService.CalculateAndOutputFare(reader)
 }

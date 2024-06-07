@@ -1,13 +1,11 @@
 package repository
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
-	"strings"
 	"testing"
 
-	"xyz.taxi-fares/pkg/meter"
+	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
 
 type mockMeterReader struct {
