@@ -87,14 +87,14 @@ func TestMeterRepository_ReadRecords(t *testing.T) {
 			repo := NewMeterRepository()
 			reader := &mockMeterReader{
 				records: tt.records,
-				err:     nil, // Assume no error for valid input cases
+				err:     nil,
 			}
 
 			if tt.wantErr {
-				reader.err = fmt.Errorf(tt.errorText) // Set the error for error cases
+				reader.err = fmt.Errorf(tt.errorText)
 			}
 
-			got, err := repo.ReadRecords(reader)
+			got, err := repo.ReadRecords(*reader)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ReadRecords() error = %v, wantErr %v", err, tt.wantErr)
