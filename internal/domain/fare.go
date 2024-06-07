@@ -1,30 +1,47 @@
 package domain
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 // Fare calculation tiers based on distance
 const (
-	baseFare         = 400 // Up to 1km
-	tier2FarePer400m = 80  // 1km - 10km
-	tier3FarePer350m = 80  // Above 10km
+	baseFare  = 400 // Up to 1km
+	tier2Fare = 40  // 1km - 10km
+	tier3Fare = 40  // Above 10km
+
+	baseDistanceMultiplier  = 1000 // 1km
+	tier2DistanceMultiplier = 400  // 1km - 10km
+	tier3DistanceMultiplier = 350  // Above 10km
+
+	minDistanceCap = 1000
+	maxDistanceCap = 10000
 )
 
 // CalculateFare calculates the taxi fare based on the distance traveled.
-func CalculateFare(distance float64) int {
-	if distance <= 1000 { // Base fare up to 1 km
+func CalculateFare(totalDistance float64) int {
+	//Error escape
+	if totalDistance < 1 {
+		return -1
+	}
+
+	if totalDistance <= minDistanceCap { // Base fare up to 1 km
 		return baseFare
 	}
 
-	fare := baseFare
-	remainingDistance := distance - 1000
+	totalFare := baseFare
+	remainingDistance := totalDistance - minDistanceCap
 
-	// Tier 2: Up to 10 km, add 80 yen every 400 meters
-	tier2Distance := math.Min(remainingDistance, 9000) // Maximum distance in tier 2 is 9000 meters
-	fare += int(tier2Distance/400) * tier2FarePer400m
-	remainingDistance -= tier2Distance
+	// Tier 2: Up to 10 km, add 40 yen every 400 meters
+	if totalDistance <= maxDistanceCap { // Check if it's exceed 3rd tier
+		totalFare += int(math.Ceil(remainingDistance/tier2DistanceMultiplier) * tier2Fare)
+	} else { // Exceed 10km
+		tier3Distance := totalDistance - maxDistanceCap
 
-	// Tier 3: Above 10 km, add 80 yen every 350 meters
-	fare += int(math.Ceil(remainingDistance/350)) * tier3FarePer350m
+		totalFare += int(math.Ceil((maxDistanceCap-minDistanceCap)/tier2DistanceMultiplier) * tier2Fare)
+		totalFare += int(math.Ceil(tier3Distance/tier3DistanceMultiplier) * tier3Fare)
+	}
 
-	return fare
+	return totalFare
 }
