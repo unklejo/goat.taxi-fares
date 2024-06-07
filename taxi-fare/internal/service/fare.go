@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"taxi-fare-calculator/internal/domain"
-	"taxi-fare-calculator/internal/repository"
-	"taxi-fare-calculator/pkg/meter"
+	"taxi-fare/internal/domain"
+	"taxi-fare/internal/repository"
+	"taxi-fare/pkg/meter"
 )
 
 type FareService struct {

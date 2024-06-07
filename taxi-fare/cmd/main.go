@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"taxi-fare-calculator/internal/usecase"
-	"taxi-fare-calculator/pkg/meter"
+	"taxi-fare/internal/usecase"
+	"taxi-fare/pkg/meter"
 )
 
 func main() {

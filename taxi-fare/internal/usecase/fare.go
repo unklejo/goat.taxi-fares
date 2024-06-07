@@ -1,6 +1,6 @@
 package usecase
 
-import "taxi-fare-calculator/pkg/meter"
+import "taxi-fare/pkg/meter"
 
 type FareUseCase interface {
 	CalculateAndOutputFare(reader meter.Reader) error
