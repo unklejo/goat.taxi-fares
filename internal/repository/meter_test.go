@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"taxi-fare/pkg/meter"
+	"xyz.taxi-fares/pkg/meter"
 )
 
 type mockMeterReader struct {

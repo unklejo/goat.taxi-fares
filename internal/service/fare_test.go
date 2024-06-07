@@ -3,8 +3,8 @@ package service
 import (
 	"bytes"
 	"strings"
-	"taxi-fare/internal/repository"
-	"taxi-fare/pkg/meter"
+	"xyz.taxi-fares/internal/repository"
+	"xyz.taxi-fares/pkg/meter"
 	"testing"
 )
 
