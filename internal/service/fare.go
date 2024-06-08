@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"io"
+	"log"
 	"sort"
 
 	"github.com/unklejo/xyz.taxi-fares/internal/domain"
@@ -21,20 +22,29 @@ func NewFareService(repo repository.MeterRepository) *FareService {
 }
 
 // CalculateAndOutputFare calculates and outputs the fare based on meter records.
-func (fs *FareService) CalculateAndOutputFare(reader meter.Reader, w io.Writer) error {
-	records, err := fs.repo.ReadRecords(reader) // Corrected: ReadRecords expects a *meter.Reader.
+func (fareService *FareService) CalculateAndOutputFare(reader *meter.Reader, w io.Writer) error {
+	// Use the repository's ReadRecords to get the meter records
+	records, err := fareService.repo.ReadRecords(reader)
 	if err != nil {
+		log.Printf("Error reading records: %v", err)
 		return err
 	}
 
-	if len(records) < 2 || records[len(records)-1].Distance == 0 {
-		return fmt.Errorf("insufficient or invalid data")
+	// Handle case where there are no records (i.e., empty input)
+	if len(records) == 0 {
+		return nil // No input, so no fare to calculate
 	}
 
+	if records[len(records)-1].Distance == 0 {
+		return fmt.Errorf("invalid data: total distance is zero")
+	}
+
+	// Calculate distance differences
 	for i := 1; i < len(records); i++ {
 		records[i].DistanceDiff = records[i].Distance - records[i-1].Distance
 	}
 
+	// Sort by distance difference
 	sort.Slice(records, func(i, j int) bool {
 		return records[i].DistanceDiff > records[j].DistanceDiff
 	})

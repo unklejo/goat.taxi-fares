@@ -20,7 +20,7 @@ const (
 
 // CalculateFare calculates the taxi fare based on the distance traveled.
 func CalculateFare(totalDistance float64) int {
-	//Error escape
+	// Error escape
 	if totalDistance <= 0 {
 		return -1
 	}
@@ -33,7 +33,7 @@ func CalculateFare(totalDistance float64) int {
 	remainingDistance := totalDistance - minDistanceCap
 
 	// Tier 2: Up to 10 km, add 40 yen every 400 meters
-	if totalDistance <= maxDistanceCap { // Check if it's exceed 3rd tier
+	if totalDistance <= maxDistanceCap { // Check if it exceeds 3rd tier
 		totalFare += int(math.Ceil(remainingDistance/tier2DistanceMultiplier)) * tier2Fare
 	} else { // Exceed 10km
 		tier3Distance := totalDistance - maxDistanceCap

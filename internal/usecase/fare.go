@@ -17,5 +17,5 @@ func NewCalculateAndOutputFareUseCase(fareService service.FareService) *Calculat
 }
 
 func (uc *CalculateAndOutputFareUseCase) Execute(reader meter.Reader, w io.Writer) error {
-	return uc.fareService.CalculateAndOutputFare(reader, w)
+	return uc.fareService.CalculateAndOutputFare(&reader, w)
 }

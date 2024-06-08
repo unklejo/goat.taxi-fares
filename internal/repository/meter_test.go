@@ -68,7 +68,7 @@ func TestMeterRepository_ReadRecords(t *testing.T) {
 
 			reader := meter.NewReader(strings.NewReader(tt.input))
 
-			got, err := repo.ReadRecords(*reader)
+			got, err := repo.ReadRecords(reader)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ReadRecords() error = %v, wantErr %v", err, tt.wantErr)
