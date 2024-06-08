@@ -8,15 +8,6 @@ import (
 	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
 
-type mockMeterReader struct {
-	records []meter.Record
-	err     error
-}
-
-func (m mockMeterReader) ReadRecords() ([]meter.Record, error) {
-	return m.records, m.err
-}
-
 func TestMeterRepository_ReadRecords(t *testing.T) {
 	tests := []struct {
 		name    string

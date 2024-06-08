@@ -3,11 +3,13 @@ package service
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/unklejo/xyz.taxi-fares/internal/repository"
 	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
 
@@ -50,79 +52,92 @@ func parseRecords(t *testing.T, input string) []meter.Record {
 
 func TestFareService_CalculateAndOutputFare(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   string
-		want    string
-		wantErr bool
+		name           string
+		input          string
+		mockRepo       repository.MeterRepository
+		expectedOutput string
+		wantErr        bool
 	}{
-		// Valid inputs
 		{
-			name:    "Basic Input",
-			input:   "00:00:00.000 0.0\n00:01:00.123 480.9\n00:02:00.125 1141.2\n00:03:00.100 1800.8\n",
-			want:    `1240 00:02:00.125 1141.2 660.3 00:03:00.100 1800.8 659.6 00:01:00.123 480.9 480.9 00:00:00.000 0.0 0.0`,
-			wantErr: false,
+			name:  "Basic Input",
+			input: "00:00:00.000 0.0\n00:01:00.123 480.9\n00:02:00.125 1141.2\n00:03:00.100 1800.8\n",
+			mockRepo: &mockMeterReader{
+				records: []meter.Record{
+					{Time: "00:00:00.000", Distance: 0.0},
+					{Time: "00:01:00.123", Distance: 480.9},
+					{Time: "00:02:00.125", Distance: 1141.2},
+					{Time: "00:03:00.100", Distance: 1800.8},
+				},
+				err: nil,
+			},
+			expectedOutput: `1240 00:02:00.125 1141.2 660.3 00:03:00.100 1800.8 659.6 00:01:00.123 480.9 480.9 00:00:00.000 0.0 0.0`,
+			wantErr:        false,
 		},
 		// Error scenarios (invalid format, time order, gaps, etc.)
 		{
-			name:    "Invalid Input Format",
-			input:   "00:00:00 0.0\n00:01:00.123 480.9",
-			want:    "", // No output for invalid format
-			wantErr: true,
+			name:           "Invalid Input Format",
+			input:          "00:00:00 0.0\n00:01:00.123 480.9",
+			mockRepo:       &mockMeterReader{records: nil, err: fmt.Errorf("invalid input format")},
+			expectedOutput: "",
+			wantErr:        true,
 		},
 		{
-			name:    "Blank Line",
-			input:   "00:00:00.000 0.0\n\n00:01:00.123 480.9",
-			want:    "",
-			wantErr: true,
+			name:           "Blank Line",
+			input:          "00:00:00.000 0.0\n\n00:01:00.123 480.9",
+			mockRepo:       &mockMeterReader{records: nil, err: fmt.Errorf("blank line encountered")},
+			expectedOutput: "",
+			wantErr:        true,
 		},
 		{
-			name:    "Invalid Time Order",
-			input:   "00:01:00.123 480.9\n00:00:00.000 0.0",
-			want:    "",
-			wantErr: true,
+			name:           "Invalid Time Order",
+			input:          "00:01:00.123 480.9\n00:00:00.000 0.0",
+			mockRepo:       &mockMeterReader{records: nil, err: fmt.Errorf("invalid time order")},
+			expectedOutput: "",
+			wantErr:        true,
 		},
 		{
-			name:    "Time Gap Too Large",
-			input:   "00:00:00.000 0.0\n00:06:00.123 480.9",
-			want:    "",
-			wantErr: true,
+			name:           "Time Gap Too Large",
+			input:          "00:00:00.000 0.0\n00:06:00.123 480.9",
+			mockRepo:       &mockMeterReader{records: nil, err: fmt.Errorf("time gap too large")},
+			expectedOutput: "",
+			wantErr:        true,
 		},
 		{
-			name:    "Insufficient Data",
-			input:   "00:00:00.000 0.0",
-			want:    "",
-			wantErr: true,
+			name:           "Insufficient Data",
+			input:          "00:00:00.000 0.0",
+			mockRepo:       &mockMeterReader{records: nil, err: fmt.Errorf("insufficient or invalid data")},
+			expectedOutput: "",
+			wantErr:        true,
 		},
 		{
-			name:    "Zero Total Distance",
-			input:   "00:00:00.000 0.0\n00:01:00.123 0.0",
-			want:    "",
-			wantErr: true,
+			name:           "Zero Total Distance",
+			input:          "00:00:00.000 0.0\n00:01:00.123 0.0",
+			mockRepo:       &mockMeterReader{records: nil, err: fmt.Errorf("invalid data: total distance is zero")},
+			expectedOutput: "",
+			wantErr:        true,
 		},
 		{
-			name:    "Invalid Distance Format",
-			input:   "00:00:00.000 0.0\n00:01:00.123 480.9a",
-			want:    "",
-			wantErr: true,
+			name:           "Invalid Distance Format",
+			input:          "00:00:00.000 0.0\n00:01:00.123 480.9a",
+			mockRepo:       &mockMeterReader{records: nil, err: fmt.Errorf("invalid distance format: 480.9a")},
+			expectedOutput: "",
+			wantErr:        true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out := &bytes.Buffer{}
+			out := &bytes.Buffer{} // Capture standard output
 
-			mockRepo := &mockMeterRepository{
-				records: parseRecords(t, tt.input),
-			}
-			service := NewFareService(mockRepo)
+			service := NewFareService(tt.mockRepo) // Pass mock repository directly
 
-			err := service.CalculateAndOutputFare(*meter.NewReader(strings.NewReader(tt.input))) // Pass reader (not pointer)
+			err := service.CalculateAndOutputFare(meter.NewReader(strings.NewReader(tt.input)))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CalculateAndOutputFare() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
-			expectedOutput := strings.ReplaceAll(tt.want, " ", "\n")
+			expectedOutput := strings.ReplaceAll(tt.expectedOutput, " ", "\n")
 			if got := out.String(); got != expectedOutput {
 				t.Errorf("CalculateAndOutputFare() = %v, want %v", got, expectedOutput)
 			}
@@ -131,10 +146,12 @@ func TestFareService_CalculateAndOutputFare(t *testing.T) {
 }
 
 // Mock MeterRepository implementation
-type mockMeterRepository struct {
+type mockMeterReader struct {
 	records []meter.Record
+	err     error
 }
 
-func (m *mockMeterRepository) ReadRecords(reader meter.Reader) ([]meter.Record, error) {
-	return m.records, nil
+// Implement ReadRecords to satisfy the MeterRepository interface
+func (m *mockMeterReader) ReadRecords(reader meter.Reader) ([]meter.Record, error) {
+	return m.records, m.err
 }
