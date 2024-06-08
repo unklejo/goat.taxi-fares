@@ -14,9 +14,8 @@ const (
 	tier2DistanceMultiplier = 400  // 1km - 10km
 	tier3DistanceMultiplier = 350  // Above 10km
 
-	minDistanceCap      = 1000.0
-	maxDistanceCap      = 10000.0
-	tier2maxDistanceCap = 9000.0
+	minDistanceCap = 1000.0
+	maxDistanceCap = 10000.0
 )
 
 // CalculateFare calculates the taxi fare based on the distance traveled.
@@ -39,7 +38,7 @@ func CalculateFare(totalDistance float64) int {
 	} else { // Exceed 10km
 		tier3Distance := totalDistance - maxDistanceCap
 
-		totalFare += int(math.Ceil(tier2maxDistanceCap/tier2DistanceMultiplier)) * tier2Fare
+		totalFare += int(math.Ceil((maxDistanceCap-minDistanceCap)/tier2DistanceMultiplier)) * tier2Fare
 		totalFare += int(math.Ceil(tier3Distance/tier3DistanceMultiplier)) * tier3Fare
 	}
 
