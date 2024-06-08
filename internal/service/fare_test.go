@@ -127,11 +127,15 @@ func TestFareService_CalculateAndOutputFare(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out := &bytes.Buffer{} // Capture standard output
+			out := &bytes.Buffer{}
 
-			service := NewFareService(tt.mockRepo) // Pass mock repository directly
+			mockRepo := &mockMeterReader{
+				records: parseRecords(t, tt.input),
+			}
+			service := NewFareService(mockRepo)
 
-			err := service.CalculateAndOutputFare(meter.NewReader(strings.NewReader(tt.input)))
+			// Dereference the reader
+			err := service.CalculateAndOutputFare(*meter.NewReader(strings.NewReader(tt.input))) // Dereference the pointer here
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CalculateAndOutputFare() error = %v, wantErr %v", err, tt.wantErr)
 				return
