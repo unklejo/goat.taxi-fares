@@ -7,48 +7,85 @@ import (
 	"sort"
 
 	"github.com/unklejo/xyz.taxi-fares/internal/domain"
-	"github.com/unklejo/xyz.taxi-fares/internal/repository"
 	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
 
-// FareService represents the fare calculation service.
+const (
+	timeLayout = "15:04:05.000"
+)
+
+type MeterRepository interface {
+	ReadRecords(reader *meter.Reader) ([]meter.Record, error)
+}
+
 type FareService struct {
-	repo repository.MeterRepository
+	meterRepo MeterRepository
 }
 
-// NewFareService creates a new FareService instance.
-func NewFareService(repo repository.MeterRepository) *FareService {
-	return &FareService{repo: repo}
+func NewFareService(meterRepo MeterRepository) *FareService {
+	return &FareService{meterRepo: meterRepo}
 }
 
-// CalculateAndOutputFare calculates and outputs the fare based on meter records.
-func (fareService *FareService) CalculateAndOutputFare(reader *meter.Reader, w io.Writer) error {
-	records, err := fareService.repo.ReadRecords(reader)
+func (s *FareService) CalculateAndOutputFare(reader *meter.Reader, output io.Writer) error {
+	records, err := s.meterRepo.ReadRecords(reader)
 	if err != nil {
-		log.Printf("Error reading records: %v", err)
+		log.Println("Error reading records:", err)
 		return err
 	}
 
-	if len(records) < 2 || records[len(records)-1].Distance == 0 {
-		return fmt.Errorf("invalid data: insufficient or invalid data")
+	if len(records) < 2 {
+		log.Println("Error reading records: insufficient or invalid data")
+		return fmt.Errorf("insufficient or invalid data")
 	}
 
-	// Calculate distance differences
-	for i := 1; i < len(records); i++ {
-		records[i].DistanceDiff = records[i].Distance - records[i-1].Distance
+	totalDistance := records[len(records)-1].Distance
+	if totalDistance == 0 {
+		log.Println("Error reading records: insufficient or invalid data")
+		return fmt.Errorf("insufficient or invalid data")
 	}
 
-	// Sort by distance difference
-	sort.Slice(records, func(i, j int) bool {
-		return records[i].DistanceDiff > records[j].DistanceDiff
+	fare := domain.CalculateFare(totalDistance)
+	if fare == -1 {
+		log.Println("Error calculating fare")
+		return fmt.Errorf("error calculating fare")
+	}
+
+	_, err = fmt.Fprintf(output, "%d\n", fare)
+	if err != nil {
+		return err
+	}
+
+	// Calculate the mileage difference and sort in descending order
+	type outputRecord struct {
+		time     string
+		distance float64
+		diff     float64
+	}
+
+	var outputRecords []outputRecord
+	for i := 0; i < len(records); i++ {
+		var diff float64
+		if i == 0 {
+			diff = 0
+		} else {
+			diff = records[i].Distance - records[i-1].Distance
+		}
+		outputRecords = append(outputRecords, outputRecord{
+			time:     records[i].Time.Format(timeLayout),
+			distance: records[i].Distance,
+			diff:     diff,
+		})
+	}
+
+	sort.Slice(outputRecords, func(i, j int) bool {
+		return outputRecords[i].diff > outputRecords[j].diff
 	})
 
-	finalFare := domain.CalculateFare(records[len(records)-1].Distance)
-
-	// Output to the provided io.Writer
-	fmt.Fprintln(w, finalFare)
-	for _, record := range records {
-		fmt.Fprintf(w, "%s %.1f %.1f\n", record.Time, record.Distance, record.DistanceDiff)
+	for _, rec := range outputRecords {
+		_, err := fmt.Fprintf(output, "%s %.1f %.1f\n", rec.time, rec.distance, rec.diff)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -4,16 +4,16 @@ import (
 	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
 
-type MeterRepository interface {
-	ReadRecords(reader *meter.Reader) ([]meter.Record, error)
+type MeterRepository struct{}
+
+func NewMeterRepository() *MeterRepository {
+	return &MeterRepository{}
 }
 
-type meterRepository struct{}
-
-func NewMeterRepository() MeterRepository {
-	return &meterRepository{}
-}
-
-func (mr *meterRepository) ReadRecords(reader *meter.Reader) ([]meter.Record, error) {
-	return reader.ReadRecords()
+func (r *MeterRepository) ReadRecords(reader *meter.Reader) ([]meter.Record, error) {
+	records, err := reader.ReadRecords()
+	if err != nil {
+		return nil, err
+	}
+	return records, nil
 }

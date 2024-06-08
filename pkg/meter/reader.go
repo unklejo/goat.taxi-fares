@@ -11,7 +11,7 @@ import (
 )
 
 type Record struct {
-	Time         string
+	Time         time.Time
 	Distance     float64
 	DistanceDiff float64
 }
@@ -61,7 +61,7 @@ func (r *Reader) ReadRecords() ([]Record, error) {
 			return nil, fmt.Errorf("invalid distance format: %s", matches[2])
 		}
 
-		records = append(records, Record{Time: matches[1], Distance: distance})
+		records = append(records, Record{Time: currentTime, Distance: distance})
 		lastTime = &currentTime
 	}
 
@@ -74,28 +74,4 @@ func (r *Reader) ReadRecords() ([]Record, error) {
 	}
 
 	return records, nil
-}
-
-// parseFloat64 converts a string to a float64, ensuring it has at most one decimal point.
-func parseFloat64(s string) (float64, error) {
-	parts := strings.Split(s, ".")
-	if len(parts) > 2 {
-		return 0, fmt.Errorf("invalid floating-point format: %s", s)
-	}
-	whole, err := strconv.Atoi(parts[0])
-	if err != nil {
-		return 0, err
-	}
-	if len(parts) == 1 {
-		return float64(whole), nil
-	}
-	fracStr := parts[1]
-	if len(fracStr) > 1 {
-		return 0, fmt.Errorf("too many digits after decimal point: %s", s)
-	}
-	frac, err := strconv.Atoi(fracStr)
-	if err != nil {
-		return 0, err
-	}
-	return float64(whole) + float64(frac)/10, nil
 }

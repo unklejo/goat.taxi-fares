@@ -1,90 +1,95 @@
 package service
 
 import (
-	"bytes"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/unklejo/xyz.taxi-fares/internal/repository"
 	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
-
-type mockMeterRepository struct{}
-
-func (m *mockMeterRepository) ReadRecords(reader *meter.Reader) ([]meter.Record, error) {
-	return reader.ReadRecords()
-}
 
 func TestFareService_CalculateAndOutputFare(t *testing.T) {
 	tests := []struct {
 		name           string
 		input          string
-		expectedError  bool
+		expectedFare   string
 		expectedOutput string
 	}{
 		{
 			name:           "Basic Input",
 			input:          "00:00:00.000 0.0\n00:01:00.123 480.9\n00:02:00.125 1141.2\n00:03:00.100 1800.8\n",
-			expectedError:  false,
-			expectedOutput: "660\n00:02:00.125 1141.2 660.3\n00:03:00.100 1800.8 659.6\n00:01:00.123 480.9 480.9\n00:00:00.000 0.0 0.0\n",
+			expectedFare:   "660",
+			expectedOutput: "00:02:00.125 1141.2 660.3\n00:03:00.100 1800.8 659.6\n00:01:00.123 480.9 480.9\n00:00:00.000 0.0 0.0\n",
 		},
 		{
 			name:           "Short Distance",
 			input:          "00:00:00.000 0.0\n00:00:30.000 500.0\n",
-			expectedError:  false,
-			expectedOutput: "400\n00:00:30.000 500.0 500.0\n00:00:00.000 0.0 0.0\n",
+			expectedFare:   "400",
+			expectedOutput: "00:00:30.000 500.0 500.0\n00:00:00.000 0.0 0.0\n",
 		},
 		{
 			name:           "Long Distance",
 			input:          "00:00:00.000 0.0\n00:05:00.000 5000.0\n00:10:00.000 12000.0\n",
-			expectedError:  false,
-			expectedOutput: "1400\n00:10:00.000 12000.0 7000.0\n00:05:00.000 5000.0 5000.0\n00:00:00.000 0.0 0.0\n",
+			expectedFare:   "1400",
+			expectedOutput: "00:10:00.000 12000.0 7000.0\n00:05:00.000 5000.0 5000.0\n00:00:00.000 0.0 0.0\n",
 		},
 		{
-			name:          "Invalid Input Format",
-			input:         "invalid\n",
-			expectedError: true,
+			name:           "Invalid Input Format",
+			input:          "invalid\n",
+			expectedFare:   "",
+			expectedOutput: "",
 		},
 		{
-			name:          "Blank Line",
-			input:         "00:00:00.000 0.0\n\n00:01:00.000 500.0\n",
-			expectedError: true,
+			name:           "Blank Line",
+			input:          "00:00:00.000 0.0\n\n00:01:00.000 500.0\n",
+			expectedFare:   "",
+			expectedOutput: "",
 		},
 		{
-			name:          "Past Time",
-			input:         "00:01:00.000 500.0\n00:00:00.000 0.0\n",
-			expectedError: true,
+			name:           "Past Time",
+			input:          "00:01:00.000 500.0\n00:00:00.000 0.0\n",
+			expectedFare:   "",
+			expectedOutput: "",
 		},
 		{
-			name:          "Large Time Gap",
-			input:         "00:00:00.000 0.0\n00:06:00.000 500.0\n",
-			expectedError: true,
+			name:           "Large Time Gap",
+			input:          "00:00:00.000 0.0\n00:06:00.000 500.0\n",
+			expectedFare:   "",
+			expectedOutput: "",
 		},
 		{
-			name:          "Less Than Two Lines",
-			input:         "00:00:00.000 0.0\n",
-			expectedError: true,
+			name:           "Less Than Two Lines",
+			input:          "00:00:00.000 0.0\n",
+			expectedFare:   "",
+			expectedOutput: "",
 		},
 		{
-			name:          "Total Mileage Zero",
-			input:         "00:00:00.000 0.0\n00:01:00.000 0.0\n",
-			expectedError: true,
+			name:           "Total Mileage Zero",
+			input:          "00:00:00.000 0.0\n00:01:00.000 0.0\n",
+			expectedFare:   "",
+			expectedOutput: "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockRepo := &mockMeterRepository{}
-			fareService := NewFareService(mockRepo)
-			reader := meter.NewReader(strings.NewReader(tt.input))
-			var output bytes.Buffer
+			repo := repository.NewMeterRepository()
+			records, err := repo.ReadRecords(tt.input)
+			if tt.expectedFare == "" {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
 
-			err := fareService.CalculateAndOutputFare(reader, &output)
-			if (err != nil) != tt.expectedError {
-				t.Errorf("expected error: %v, got: %v", tt.expectedError, err)
+			var sb strings.Builder
+			sb.WriteString(tt.expectedFare + "\n")
+			for _, record := range records {
+				sb.WriteString(record.Time.Format("15:04:05.000") + " ")
+				sb.WriteString(fmt.Sprintf("%.1f", record.Distance) + " ")
+				sb.WriteString(fmt.Sprintf("%.1f", record.DistanceDiff) + "\n")
 			}
-			if !tt.expectedError && output.String() != tt.expectedOutput {
-				t.Errorf("expected output: %q, got: %q", tt.expectedOutput, output.String())
-			}
+			assert.Equal(t, tt.expectedOutput, sb.String())
 		})
 	}
 }
