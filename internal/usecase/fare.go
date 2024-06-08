@@ -3,6 +3,7 @@ package usecase
 import (
 	"github.com/unklejo/xyz.taxi-fares/internal/service"
 	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
+	"io"
 )
 
 type CalculateAndOutputFareUseCase struct {
@@ -15,6 +16,6 @@ func NewCalculateAndOutputFareUseCase(fareService service.FareService) *Calculat
 	}
 }
 
-func (uc *CalculateAndOutputFareUseCase) Execute(reader meter.Reader) error {
-	return uc.fareService.CalculateAndOutputFare(reader)
+func (uc *CalculateAndOutputFareUseCase) Execute(reader meter.Reader, w io.Writer) error {
+	return uc.fareService.CalculateAndOutputFare(reader, w)
 }

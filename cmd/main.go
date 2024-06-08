@@ -11,13 +11,13 @@ import (
 )
 
 func main() {
-	reader := meter.NewReader(os.Stdin)
+	reader := *meter.NewReader(os.Stdin)
 
 	repo := repository.NewMeterRepository()
 	service := service.NewFareService(repo)
 	fareUseCase := usecase.NewCalculateAndOutputFareUseCase(*service)
 
-	if err := fareUseCase.Execute(*reader); err != nil {
+	if err := fareUseCase.Execute(reader, os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

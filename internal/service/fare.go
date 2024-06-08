@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"io"
 	"sort"
 
 	"github.com/unklejo/xyz.taxi-fares/internal/domain"
@@ -9,16 +10,19 @@ import (
 	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
 
+// FareService represents the fare calculation service.
 type FareService struct {
 	repo repository.MeterRepository
 }
 
+// NewFareService creates a new FareService instance.
 func NewFareService(repo repository.MeterRepository) *FareService {
 	return &FareService{repo: repo}
 }
 
-func (fs *FareService) CalculateAndOutputFare(reader meter.Reader) error {
-	records, err := fs.repo.ReadRecords(reader)
+// CalculateAndOutputFare calculates and outputs the fare based on meter records.
+func (fs *FareService) CalculateAndOutputFare(reader meter.Reader, w io.Writer) error {
+	records, err := fs.repo.ReadRecords(reader) // Corrected: ReadRecords expects a *meter.Reader.
 	if err != nil {
 		return err
 	}
@@ -36,10 +40,11 @@ func (fs *FareService) CalculateAndOutputFare(reader meter.Reader) error {
 	})
 
 	finalFare := domain.CalculateFare(records[len(records)-1].Distance)
-	fmt.Println(finalFare)
 
+	// Output to the provided io.Writer
+	fmt.Fprintln(w, finalFare)
 	for _, record := range records {
-		fmt.Printf("%s %.1f %.1f\n", record.Time, record.Distance, record.DistanceDiff)
+		fmt.Fprintf(w, "%s %.1f %.1f\n", record.Time, record.Distance, record.DistanceDiff)
 	}
 
 	return nil

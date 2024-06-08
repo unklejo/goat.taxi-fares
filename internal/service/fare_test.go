@@ -135,7 +135,7 @@ func TestFareService_CalculateAndOutputFare(t *testing.T) {
 			service := NewFareService(mockRepo)
 
 			// Dereference the reader
-			err := service.CalculateAndOutputFare(*meter.NewReader(strings.NewReader(tt.input))) // Dereference the pointer here
+			err := service.CalculateAndOutputFare(*meter.NewReader(strings.NewReader(tt.input)), out)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CalculateAndOutputFare() error = %v, wantErr %v", err, tt.wantErr)
 				return
