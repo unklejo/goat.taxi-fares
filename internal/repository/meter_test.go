@@ -4,9 +4,16 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
+
+func parseTime(timeStr string) time.Time {
+	timeLayout := "15:04:05.000"
+	parsedTime, _ := time.Parse(timeLayout, timeStr)
+	return parsedTime
+}
 
 func TestMeterRepository_ReadRecords(t *testing.T) {
 	tests := []struct {
@@ -19,10 +26,10 @@ func TestMeterRepository_ReadRecords(t *testing.T) {
 			name:  "Valid Input",
 			input: "00:00:00.000 0.0\n00:01:00.123 480.9\n00:02:00.125 1141.2\n00:03:00.100 1800.8\n",
 			want: []meter.Record{
-				{Time: "00:00:00.000", Distance: 0.0},
-				{Time: "00:01:00.123", Distance: 480.9},
-				{Time: "00:02:00.125", Distance: 1141.2},
-				{Time: "00:03:00.100", Distance: 1800.8},
+				{Time: parseTime("00:00:00.000"), Distance: 0.0},
+				{Time: parseTime("00:01:00.123"), Distance: 480.9},
+				{Time: parseTime("00:02:00.125"), Distance: 1141.2},
+				{Time: parseTime("00:03:00.100"), Distance: 1800.8},
 			},
 		},
 		{

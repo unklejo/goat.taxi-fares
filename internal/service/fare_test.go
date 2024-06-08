@@ -1,12 +1,12 @@
 package service
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/unklejo/xyz.taxi-fares/internal/repository"
-	"github.com/unklejo/xyz.taxi-fares/pkg/meter"
 )
 
 func TestFareService_CalculateAndOutputFare(t *testing.T) {
