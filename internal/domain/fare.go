@@ -17,8 +17,8 @@ const (
 
 // CalculateFare calculates the fare based on distance.
 func CalculateFare(distance float64) int {
-	if distance <= 0 { // Check if distance zero or negative
-		return baseFare
+	if distance < 0 { // Check if distance zero or negative
+		return -1
 	}
 
 	distance -= baseDistanceRange

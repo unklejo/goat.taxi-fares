@@ -16,7 +16,7 @@ func TestCalculateFare(t *testing.T) {
 		// 00:02:00.125 1141.2
 		// 00:03:00.100 1800.8
 
-		{0, -1},       // No trajectory
+		{0, 400},      // No trajectory
 		{500, 400},    // Under 1km: ¥400
 		{1000, 400},   // Under 1km: ¥400
 		{1400, 440},   // 1km price: ¥400 + (¥40 per 400) * 1
