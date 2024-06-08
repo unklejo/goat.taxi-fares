@@ -23,20 +23,14 @@ func NewFareService(repo repository.MeterRepository) *FareService {
 
 // CalculateAndOutputFare calculates and outputs the fare based on meter records.
 func (fareService *FareService) CalculateAndOutputFare(reader *meter.Reader, w io.Writer) error {
-	// Use the repository's ReadRecords to get the meter records
 	records, err := fareService.repo.ReadRecords(reader)
 	if err != nil {
 		log.Printf("Error reading records: %v", err)
 		return err
 	}
 
-	// Handle case where there are no records (i.e., empty input)
-	if len(records) == 0 {
-		return nil // No input, so no fare to calculate
-	}
-
-	if records[len(records)-1].Distance == 0 {
-		return fmt.Errorf("invalid data: total distance is zero")
+	if len(records) < 2 || records[len(records)-1].Distance == 0 {
+		return fmt.Errorf("invalid data: insufficient or invalid data")
 	}
 
 	// Calculate distance differences
