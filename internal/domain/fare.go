@@ -9,36 +9,32 @@ const (
 	baseFare           = 400 // Up to 1km
 	tier2Fare          = 40  // 1km - 10km
 	tier3Fare          = 40  // Above 10km
-	baseDistanceLimit  = 1000.0
-	tier2DistanceLimit = 10000.0
+	baseDistanceRange  = 1000.0
+	tier2DistanceRange = 9000.0
 	tier2DistanceUnit  = 400.0
 	tier3DistanceUnit  = 350.0
 )
 
-// CalculateFare calculates the taxi fare based on the distance traveled.
-func CalculateFare(totalDistance float64) int {
-	if totalDistance <= 0 {
-		return -1
+// CalculateFare calculates the fare based on distance.
+func CalculateFare(distance float64) int {
+	if distance <= 0 { // Check if distance zero or negative
+		return baseFare
+	}
+
+	distance -= baseDistanceRange
+
+	if distance <= 0 { // Check if distance exceed tier 2
+		return baseFare
 	}
 
 	totalFare := baseFare
-
-	if totalDistance <= baseDistanceLimit {
-		return totalFare
+	if distance > (tier2DistanceRange) { // Exceed distance of tier 3
+		totalFare += int(math.Ceil(tier2DistanceRange/tier2DistanceUnit)) * tier2Fare
+		distance -= tier2DistanceRange
+		totalFare += int(math.Ceil(distance/tier3DistanceUnit)) * tier3Fare
+	} else { // Distance in range of tier 2
+		totalFare += int(math.Ceil(distance/tier2DistanceUnit)) * tier2Fare
 	}
-
-	remainingDistance := totalDistance - baseDistanceLimit
-
-	if totalDistance <= tier2DistanceLimit {
-		totalFare += int(math.Ceil(remainingDistance/tier2DistanceUnit)) * tier2Fare
-		return totalFare
-	}
-
-	tier2Distance := tier2DistanceLimit - baseDistanceLimit
-	tier3Distance := totalDistance - tier2DistanceLimit
-
-	totalFare += int(math.Ceil(tier2Distance/tier2DistanceUnit)) * tier2Fare
-	totalFare += int(math.Ceil(tier3Distance/tier3DistanceUnit)) * tier3Fare
 
 	return totalFare
 }
