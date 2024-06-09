@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"log"
 	"math"
 )
 
@@ -17,6 +18,8 @@ const (
 
 // CalculateFare calculates the fare based on distance.
 func CalculateFare(distance float64) int {
+	log.Printf("Calculating fare for distance: %.1f meters\n", distance)
+
 	if distance < 0 { // Check if distance zero or negative
 		return -1
 	}
@@ -35,6 +38,8 @@ func CalculateFare(distance float64) int {
 	} else { // Distance in range of tier 2
 		totalFare += int(math.Ceil(distance/tier2DistanceUnit)) * tier2Fare
 	}
+
+	log.Printf("Calculated fare: ¥ %d \n", totalFare)
 
 	return totalFare
 }
