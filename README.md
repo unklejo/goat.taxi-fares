@@ -6,14 +6,6 @@ This project is a taxi fare calculator that reads distance and time records, cal
 
 - Go 1.22 or higher
 
-## Running The Tests
-
-To validate the functionality of the program, run the following command in the terminal:
-```
-go test -v ./...
-```
-This command will run all tests in the project and display detailed information about each test executed.
-
 ## Building and Running the Program Manually
 
 To build the program and run it manually, follow these steps:
@@ -35,3 +27,18 @@ Execute the following command in the terminal to run the program:
 
 ```
 Replace `input.txt` with the name of your input file if it has a different name. This command feeds the content of the input file into the program and displays the output.
+
+## Running The Tests
+
+To validate the functionality of the program, run the following command in the terminal:
+```
+go test -v ./...
+```
+This command will run all tests in the project and display detailed information about each test executed.
+
+## Check the test coverage
+
+To view the coverage of the projects run the following command in the terminal:
+```
+go test -cover ./...
+```
