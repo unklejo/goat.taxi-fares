@@ -15,7 +15,7 @@ func parseTime(timeStr string) time.Time {
 	return parsedTime
 }
 
-func TestMeterRepository_ReadRecords(t *testing.T) {
+func TestMeterReadRecords(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string

@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestReader_ReadRecords(t *testing.T) {
+func TestReaderReadRecords(t *testing.T) {
 	tests := []struct {
 		name    string
 		input   string
