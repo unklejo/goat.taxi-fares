@@ -1,7 +1,9 @@
-## Taxi Fare Calculator
+# Taxi Fare Calculator
+
+## User Requirements
 
 This project is a taxi fare calculator that reads distance and time records, calculates the fare based on given rules, and outputs the fare along with the processed records.
-Below are the product requirements for this project:
+Below are the user requirements for this project:
 ### (i) Overview
 
 1. The base fare is 400 yen for up to 1 km.
@@ -56,7 +58,7 @@ On the next lines, display all of the input data with mileage difference compare
 
 Standard output displays nothing for incorrect inputs that do not meet specifications, the exit code ends with a value other than 0.
 
-## Requirements
+## Build Requirements
 
 - Go 1.22 or higher
 
